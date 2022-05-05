@@ -7,9 +7,6 @@ chunks --> {address, hash of chunk}
 storage --> {hash, data}
 
 '''
-class file:
-    order = {}
-
 
 # chunks of 32 bytes
 BUF_SIZE = 256 
@@ -17,31 +14,29 @@ BUF_SIZE = 256
 chunks = {}
 storage = {}
 
+class file:
+    
+    def __init__(self, filename):
+        self.filename = filename
+        self.order = {}
+    
+    def split(self):
+        with open(self.filename, 'rb') as f:
+            counter = 0
+            while True:
+                data = f.read(BUF_SIZE)
+                if not data:
+                    break
+                hashed = hashlib.md5(data).hexdigest()
+                if data not in chunks:
+                    chunks[hashed] = 1
+                    storage[hashed] = data
+                self.order[counter] = hashed
+                counter += 1
+                
+        # print(chunks)
+    
 
-
-'''
-Takes the system arguments and splits them into 32 byte chunks. 
-Hashes chunks and points to address of host
-'''
-def split(filename):
-    with open(filename, 'rb') as f:
-        counter = 0
-        fileSplit = file()
-        while True:
-            data = f.read(BUF_SIZE)
-            if not data:
-                break
-            hashed = hashlib.md5(data).hexdigest()
-            if data not in chunks:
-                chunks[hashed] = 1
-                storage[hashed] = data
-            fileSplit.order[counter] = hashed
-            counter += 1
-            
-    return fileSplit
-             
-            
-        
 
 '''
 Pieces together file, for now ignores address of host (not implemented)
@@ -52,24 +47,32 @@ def retrieve(file):
     for i in range(len(file.order)):
         merged += storage[file.order[i]]
 
-    print(merged.decode("utf-8"))
+    #print(len(merged.decode("utf-8")))
+    return len(merged.decode("utf-8"))
     
     
-
-
     
-                
-split(sys.argv[1])
-split(sys.argv[2])
+# some testing (seems to work!)
+fileA = file(sys.argv[1])
+fileB = file(sys.argv[2])
 
-fileA = split(sys.argv[1])
-fileB = split(sys.argv[2])
+fileA.split()
+fileB.split()
 
-print(chunks)
+#retrieve(fileA)
+#retrieve(fileB)
 
-retrieve(fileA)
-print('/n')
-retrieve(fileB)
+# number of chars outputed
+total = retrieve(fileA) + retrieve(fileB)
+
+m = b''
+for each in storage:
+    m += storage[each]
+    
+# number of chars actually stored
+stored = len(m.decode('utf-8'))
+
+print("storage savings of " + str(100*(total - stored)/total) + "%")
     
     
         
