@@ -1,0 +1,5 @@
+To-Do File Storage
+
+- Reconstruct file locally
+- Connect to lenovo laptop
+- Reconstruct file from files found @ lenovo
