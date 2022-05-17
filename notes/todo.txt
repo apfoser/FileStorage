@@ -1,0 +1,4 @@
+TODO for Summer 2022
+
+1. finish local splitting/merging -done
+2. local split file transfer -done

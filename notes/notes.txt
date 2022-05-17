@@ -1,0 +1,18 @@
+1. Efficient traversing of DHT
+    - Chord --> "finger tables"
+        - m + 2^i
+        - O(log(n)) traversal
+        - start with O(n) solution and then implement finger tables
+        - HashTable[hash(key), hash(ip)]
+
+2. File splitting
+    - base implementation done, just need to send && store chunks on base network
+    - calculate savings on demo
+
+3. Hardcode nodes
+    - maybe macbook? (big if bc it has been wonky)
+
+4. Bugs
+    - macbook pro version issues with socket -fixed
+    - threading count on exception
+    - work on exception handling
