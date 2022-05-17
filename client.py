@@ -1,5 +1,6 @@
 import socket
 import tqdm
+from _thread import *
 import os
 
 SEPARATOR = "<SEPARATOR>"
@@ -24,4 +25,5 @@ with open(filename, "rb") as f:
             break
         s.sendall(bytes_read)
         progress.update(len(bytes_read))
+        
 s.close()
