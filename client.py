@@ -7,7 +7,7 @@ SEPARATOR = "<SEPARATOR>"
 BUFFER_SIZE = 4096
 
 s = socket.socket()
-host = "192.168.1.204"
+host = input("Host IP: ")
 port = 5001
 print(f"[+] Connecting to {host}:{port}")
 s.connect((host, port))

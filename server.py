@@ -3,7 +3,8 @@ import tqdm
 from _thread import *
 import os
 
-SERVER_HOST = "192.168.1.204"
+hostname = socket.gethostname()
+SERVER_HOST = socket.gethostbyname(hostname)
 SERVER_PORT = 5001
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
@@ -16,6 +17,7 @@ print(f"[*] Listening as {SERVER_HOST}:{SERVER_PORT}")
 def new_client(socket, address):
     print(f"[+] {address} is connected.")
     received = client_socket.recv(BUFFER_SIZE).decode()
+    print(received)
     filename, filesize = received.split(SEPARATOR)
     filename = os.path.basename(filename)
     filesize = int(filesize)
@@ -35,11 +37,9 @@ while True:
     if threads > 5:
         break
     else:
-        print("Waiting for the client to connect... ") 
         client_socket, address = s.accept()
         start_new_thread(new_client, (client_socket, address))
         threads += 1
-    
     
         
 s.close()
