@@ -80,12 +80,12 @@ class Node():
             self.sock_client.connect((address, 5001))
             
         except socket.timeout:
-            print("Error. No connection was made")
-            if address in self.active_peers:
+            print("Error: Connection to node " + self.active_peers[id] + " could not be established")
+            if id in self.active_peers:
                 del self.active_peers[id]
             
         else:
-            if address not in self.active_peers:
+            if id not in self.active_peers:
                 self.active_peers.update({id:address})
                 
         print(self.active_peers)
