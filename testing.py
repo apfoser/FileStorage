@@ -3,5 +3,4 @@ import time
 
 node = node.Node()
 
-while True:
-    print(node.peers)
+node.connect('192.168.1.219')
