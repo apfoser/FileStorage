@@ -3,6 +3,53 @@ import tqdm
 from _thread import *
 import os
 
+class client:
+    
+    def __init__(self):
+        self.peers = {}
+        self.files = {}
+    
+    '''
+    Takes in ID hash
+    Function returns ordered list of IP's that need to be contacted to retrieve file
+    '''
+    def search(id):
+        return
+
+
+    '''
+    Takes in ordered list of IDs
+    Connects to IDs and retrieves the file
+    '''
+    def retrieve(id_list):
+        return
+
+
+    '''
+    Takes in a filename
+    Uploads file to node network. Evenly distributes file chunks
+    '''
+    def put(filename):
+        return 
+    
+    '''
+    Adds self as peer to network
+    '''
+    def addSelf():
+        return
+        
+        
+    '''
+    Takes in IP
+    Adds peer to known peers list
+    '''
+    def addPeer(ip):
+        return
+
+
+#id = input("ID of your desired file: ")
+
+
 SEPARATOR = "<SEPARATOR>"
 BUFFER_SIZE = 4096
 

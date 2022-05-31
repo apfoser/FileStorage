@@ -37,6 +37,7 @@ def new_client(socket, address):
     client_socket.close()
     
 while True:
+    
     if threads > 5:
         print("More than 5 threads, closing socket...")
         break
@@ -45,6 +46,6 @@ while True:
         start_new_thread(new_client, (client_socket, address))
         threads += 1
         print("Threads: " + str(threads))
-    
+        
         
 s.close()
