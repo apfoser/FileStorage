@@ -5,6 +5,7 @@ from _thread import *
 import os
 import threading
 import time
+import hashlib
 
 class Node():
     
@@ -16,6 +17,7 @@ class Node():
         self.active_peers = {}
         self.peers = {}
         self.threads = 0
+        self.ip = ""
         self.init_client()
         thread_server = threading.Thread(target = self.init_server)
         thread_server.start()
@@ -23,15 +25,18 @@ class Node():
     '''
     Initializes listening service at ip:5001
     Creates service in new thread.
-    Each new client gets its own threads
+    Each new client gets its own thread
     '''
     def init_server(self):
         self.sock_server = socket.socket()
         hostname = socket.gethostname()
         SERVER_HOST = socket.gethostbyname(hostname)
+        self.ip = SERVER_HOST
         SERVER_PORT = 5001
         self.sock_server.bind((SERVER_HOST, SERVER_PORT))
         self.sock_server.listen(10)
+        self.id = self.gen_id(SERVER_HOST)
+        print("Node ID: " + self.id)
         print(f"Listening at {SERVER_HOST}:{SERVER_PORT}...")
         
         while True:
@@ -46,14 +51,19 @@ class Node():
         self.sock_client = socket.socket()
         self.sock_client.settimeout(2)
         
+    def gen_id(self, ip):
+        
+        id = hashlib.md5(ip.encode('utf-8')).hexdigest()
+        return id
+        
         
     '''
     Creates new thread for each additional client
     '''
     def new_client(self, socket, address):
         print(f"[+] {address} is connected.")
-        self.peers.update({address[0]:1})
-        self.active_peers.update({address[0]:1})
+        self.peers.update({self.gen_id:address[0]})
+        self.active_peers.update({self.gen_id(address[0]):address[0]})
         print(self.active_peers)
         
         
@@ -63,6 +73,8 @@ class Node():
     '''
     def connect(self, address):
 
+        id = self.gen_id(address)
+        
         self.init_client()
         try:
             self.sock_client.connect((address, 5001))
@@ -70,11 +82,11 @@ class Node():
         except socket.timeout:
             print("Error. No connection was made")
             if address in self.active_peers:
-                del self.active_peers[address]
+                del self.active_peers[id]
             
         else:
             if address not in self.active_peers:
-                self.active_peers.update({address:1})
+                self.active_peers.update({id:address})
                 
         print(self.active_peers)
         self.sock_client.close()
@@ -84,7 +96,11 @@ class Node():
     '''
     def ping_peers(self):
         for peer in self.active_peers:
-            self.connect(peer)
+            self.connect(self.active_peers[peer])
     
         return
         
+    
+    '''
+    Uploads file, sends chunks to all peers
+    '''
