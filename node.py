@@ -46,7 +46,7 @@ class Node():
     def new_client(self, socket, address):
         print(f"[+] {address} is connected.")
 
-        socket.close()
+       
         
     '''
     Connects to specific IP address.
