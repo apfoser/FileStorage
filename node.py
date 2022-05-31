@@ -35,7 +35,7 @@ class Node():
         print(f"Listening at {SERVER_HOST}:{SERVER_PORT}...")
         
         while True:
-            client_socket, client_address = self.sock.accept()
+            client_socket, client_address = self.sock_server.accept()
             start_new_thread(self.new_client, (client_socket, client_address))
             self.peers.append(client_address[0])
             self.active_peers.append(client_address[0])
