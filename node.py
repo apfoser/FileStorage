@@ -134,3 +134,8 @@ class Node():
             
         self.sock_client.close()
             
+    '''
+    Receives data from client socket
+    '''
+    def receive(self, socket, address):
+        return
