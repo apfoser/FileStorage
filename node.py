@@ -1,5 +1,6 @@
 import socket
 import select
+import string
 import tqdm
 from _thread import *
 import os
@@ -56,10 +57,16 @@ class Node():
     Creates new thread for each additional client
     '''
     def new_client(self, socket, address):
-        print(f"\n[+] {address} is connected.")
+        print(f"[+] {address} is connected.")
         self.peers.update({self.gen_id:address[0]})
         self.active_peers.update({self.gen_id(address[0]):address[0]})
-        print(self.active_peers)
+        
+        choice = socket.recv(1024).decode('utf-8')
+        
+        if choice:
+            print(choice)
+        # call function with choice
+        return
         
     '''
     Generates the ID for a specific IP address
@@ -77,8 +84,6 @@ class Node():
     def connect(self, address):
 
         id = self.gen_id(address)
-        print(id)
-        
         self.init_client()
         try:
             self.sock_client.connect((address, 5001))
@@ -90,25 +95,42 @@ class Node():
             
         else:
             if id not in self.active_peers:
-                print("here")
                 self.active_peers.update({id:address})
                 
-        self.sock_client.close()
+        #self.sock_client.close() don't forget to close
         
     '''
     Updates list of active peers
     '''
     def ping_peers(self):
+        print("Updating active peers...")
         for peer in self.active_peers:
             self.connect(self.active_peers[peer])
             
-        for peer in self.active_peers:
-            print("ID: " + peer + " at: " + self.active_peers[peer])
+            
+    '''
+    Prints list of active peers
+    '''
+    def print_peers(self):
+        self.ping_peers()
+        if self.active_peers:
+            for peer in self.active_peers:
+                print("0x" + peer + " at " + self.active_peers[peer])
+        else:
+            print('No active peers detected')
         return
         
-
+    '''
+    Sends text to peer
+    Text for now, will be updated to files later
+    '''
+    def send(self, s: string):
         
-    
-    '''
-    Uploads file, sends chunks to all peers
-    '''
+        # ping peers to update active peers dictionary
+        self.ping_peers()
+        for peer in self.active_peers:
+            self.connect(self.active_peers[peer])
+            self.sock_client.send(s.encode())
+            
+        self.sock_client.close()
+            
