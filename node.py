@@ -6,6 +6,7 @@ import os
 import threading
 import time
 import hashlib
+import sys
 
 class Node():
     
@@ -19,8 +20,8 @@ class Node():
         self.threads = 0
         self.ip = ""
         self.init_client()
-        thread_server = threading.Thread(target = self.init_server)
-        thread_server.start()
+        self.thread_server = threading.Thread(target = self.init_server)
+        self.thread_server.start()
         
     '''
     Initializes listening service at ip:5001
@@ -42,30 +43,32 @@ class Node():
         while True:
             client_socket, client_address = self.sock_server.accept()
             start_new_thread(self.new_client, (client_socket, client_address))
-            
+        
     '''
     Initializes client socket
-    Socket is shutdown after every connection to esnure good manegement of ports
+    Socket is shutdown after every connection to esnure good management of ports
     '''
     def init_client(self):
         self.sock_client = socket.socket()
         self.sock_client.settimeout(2)
         
-    def gen_id(self, ip):
-        
-        id = hashlib.md5(ip.encode('utf-8')).hexdigest()
-        return id
-        
-        
     '''
     Creates new thread for each additional client
     '''
     def new_client(self, socket, address):
-        print(f"[+] {address} is connected.")
+        print(f"\n[+] {address} is connected.")
         self.peers.update({self.gen_id:address[0]})
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         print(self.active_peers)
         
+    '''
+    Generates the ID for a specific IP address
+    Uses the MD5 hash
+    '''
+    def gen_id(self, ip):
+        
+        id = hashlib.md5(ip.encode('utf-8')).hexdigest()
+        return id
         
     '''
     Connects to specific IP address.
@@ -74,21 +77,22 @@ class Node():
     def connect(self, address):
 
         id = self.gen_id(address)
+        print(id)
         
         self.init_client()
         try:
             self.sock_client.connect((address, 5001))
             
         except socket.timeout:
-            print("Error: Connection to node " + self.active_peers[id] + " could not be established")
+            print("Error: Connection to node " + address + " could not be established")
             if id in self.active_peers:
                 del self.active_peers[id]
             
         else:
             if id not in self.active_peers:
+                print("here")
                 self.active_peers.update({id:address})
                 
-        print(self.active_peers)
         self.sock_client.close()
         
     '''
@@ -97,8 +101,12 @@ class Node():
     def ping_peers(self):
         for peer in self.active_peers:
             self.connect(self.active_peers[peer])
-    
+            
+        for peer in self.active_peers:
+            print("ID: " + peer + " at: " + self.active_peers[peer])
         return
+        
+
         
     
     '''
