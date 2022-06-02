@@ -39,7 +39,7 @@ class Node():
         self.sock_server.listen(10)
         self.id = self.gen_id(SERVER_HOST)
         print("Node ID: " + self.id)
-        print(f"Listening at {SERVER_HOST}:{SERVER_PORT}...")
+        print(f"Listening at {SERVER_HOST}:{SERVER_PORT}...\n")
         
         while True:
             client_socket, client_address = self.sock_server.accept()
@@ -51,7 +51,7 @@ class Node():
     '''
     def init_client(self):
         self.sock_client = socket.socket()
-        self.sock_client.settimeout(2)
+        self.sock_client.settimeout(.5)
         
     '''
     Creates new thread for each additional client
@@ -97,15 +97,29 @@ class Node():
             if id not in self.active_peers:
                 self.active_peers.update({id:address})
                 
-        #self.sock_client.close() don't forget to close
+        
         
     '''
     Updates list of active peers
     '''
     def ping_peers(self):
+        #self.init_client()
         print("Updating active peers...")
+        new_peers = {}
         for peer in self.active_peers:
-            self.connect(self.active_peers[peer])
+            id = self.gen_id(self.active_peers[peer])
+            self.init_client()
+            try:
+                self.sock_client.connect((self.active_peers[peer], 5001))
+                
+            except socket.timeout:
+                print("Error: Connection to node " + self.active_peers[peer] + " could not be established")
+                
+            else:
+                new_peers.update({id:self.active_peers[peer]})
+            self.sock_client.close()
+            
+        self.active_peers = new_peers
             
             
     '''

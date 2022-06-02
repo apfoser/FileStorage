@@ -1,8 +1,8 @@
 import node
 import time
 
-print("Python P2P File Sharing by apfoser")
-print("----------------------------------\n")
+print("\nPython P2P File Sharing by apfoser")
+print("----------------------------------")
 
 node = node.Node()
 
