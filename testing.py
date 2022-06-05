@@ -1,5 +1,6 @@
 import node
 import time
+import threading
 
 print("\nPython P2P File Sharing by apfoser")
 print("----------------------------------")
@@ -25,5 +26,8 @@ while True:
         node.print_peers()
         
     if choice == "send":
-        node.send("test")
+        node.send("test test test test")
+        
+    if choice == "connections":
+        node.get_connections()
     

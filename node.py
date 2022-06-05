@@ -43,11 +43,12 @@ class Node():
         
         while True:
             client_socket, client_address = self.sock_server.accept()
-            start_new_thread(self.new_client, (client_socket, client_address))
+            thread = threading.Thread(target = self.new_client, args = (client_socket, client_address))
+            thread.start()
         
     '''
     Initializes client socket
-    Socket is shutdown after every connection to esnure good management of ports
+    Socket is shutdown after every connection to ensure good management of ports
     '''
     def init_client(self):
         self.sock_client = socket.socket()
@@ -56,16 +57,19 @@ class Node():
     '''
     Creates new thread for each additional client
     '''
-    def new_client(self, socket, address):
+    def new_client(self, socket: socket, address):
         print(f"[+] {address} is connected.")
         self.peers.update({self.gen_id:address[0]})
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         
+        # blocking call
         choice = socket.recv(1024).decode('utf-8')
         
         if choice:
             print(choice)
         # call function with choice
+        
+        socket.close()
         return
         
     '''
@@ -97,7 +101,12 @@ class Node():
             if id not in self.active_peers:
                 self.active_peers.update({id:address})
                 
-        
+    '''
+    Outputs number of threads in use (ie. number of connections to node)
+    '''
+    def get_connections(self):
+        print(threading.activeCount())
+        return
         
     '''
     Updates list of active peers
