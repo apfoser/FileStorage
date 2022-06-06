@@ -1,6 +1,8 @@
+from calendar import c
 import socket
 import select
 import string
+from tkinter.ttk import Separator
 import tqdm
 from _thread import *
 import os
@@ -8,6 +10,11 @@ import threading
 import time
 import hashlib
 import sys
+import pickle
+
+from server import SERVER_PORT
+
+SEPARATOR = 'XXX'
 
 class Node():
     
@@ -63,16 +70,30 @@ class Node():
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         
         # blocking call
-        choice = socket.recv(64).decode('utf-8')
+        received = socket.recv(16).decode('utf-8')
+        if not received:
+            socket.close()
+            return
+        print(received)
         
-        # choices for receiving,
-        # 01 = text
-        # 02 = file chunk
-        # etc
+        # needed to handle any "bad" instructions sent (incomplete, etc)
+        instructions = received.split(SEPARATOR)
+        mode, choice = instructions[0], instructions[1]
         
-        if choice == "01":
-            print(choice)
-        # call function with choice
+        print("mode: " + mode)
+        print("choice: " + choice)
+        
+        
+        # choice provided to new client
+        # 0x0 --> requesting data from THIS PEER
+        # 0x1 --> THIS PEER will receive data
+        
+        # call send() or receive()
+        if mode == "0x0":
+            self.send(choice, address)
+            
+        elif mode == "0x01":
+            self.receive(choice, socket, address)
         
         socket.close()
         return
@@ -150,9 +171,9 @@ class Node():
         
     '''
     Sends text to peer
-    Text for now, will be updated to files later
+    Texts only, separate from send which handles protocol stuff
     '''
-    def send(self, s: string):
+    def send_string(self, s: string):
         
         # ping peers to update active peers dictionary
         self.ping_peers()
@@ -161,9 +182,30 @@ class Node():
             self.sock_client.send(s.encode())
             
         self.sock_client.close()
+        
+    
+    '''
+    Communicates with connected client
+    Handles protocol stuff (new peer, etc)
+    '''
+    def send(self, type: string, peer):
+        
+        print("in send function")
+        
+        self.connect(peer)
+        
+        if type == "0x001":
+            self.sock_client.send(type)
+            msg = pickle.dumps(self.active_peers)
+            self.sock_client.send(msg)
+            
+            
+        self.sock_client.close()
+        return
             
     '''
     Receives data from client socket
     '''
-    def receive(self, socket, address):
+    def receive(self, choice, socket, address):
         return
+    

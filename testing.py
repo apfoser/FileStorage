@@ -14,6 +14,8 @@ while True:
     
     if choice == "connect":
         ip = input("IP address: ")
+        if ip == "self":
+            ip = node.ip
         node.connect(ip)
         
     if choice == "exit":
@@ -26,7 +28,8 @@ while True:
         node.print_peers()
         
     if choice == "send":
-        node.send("01")
+        s = input("string to send: ")
+        node.send_string(s)
         
     if choice == "connections":
         node.get_connections()
