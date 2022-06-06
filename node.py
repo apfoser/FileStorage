@@ -63,9 +63,14 @@ class Node():
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         
         # blocking call
-        choice = socket.recv(1024).decode('utf-8')
+        choice = socket.recv(64).decode('utf-8')
         
-        if choice:
+        # choices for receiving,
+        # 01 = text
+        # 02 = file chunk
+        # etc
+        
+        if choice == "01":
             print(choice)
         # call function with choice
         

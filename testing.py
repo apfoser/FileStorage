@@ -26,7 +26,7 @@ while True:
         node.print_peers()
         
     if choice == "send":
-        node.send("test test test test")
+        node.send("01")
         
     if choice == "connections":
         node.get_connections()
