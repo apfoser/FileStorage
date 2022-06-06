@@ -12,8 +12,6 @@ import hashlib
 import sys
 import pickle
 
-from server import SERVER_PORT
-
 SEPARATOR = 'XXX'
 
 class Node():
