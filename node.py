@@ -166,16 +166,14 @@ class Node():
         return
         
     '''
-    Sends text to peer
-    Texts only, separate from send which handles protocol stuff
+    Send request to peer
+    Different with send() function in that it doesn't handle any objects
+    Just text aka system requests
     '''
-    def send_string(self, s: string):
-        
-        # ping peers to update active peers dictionary
-        self.ping_peers()
-        for peer in self.active_peers:
-            self.connect(self.active_peers[peer])
-            self.sock_client.send(s.encode())
+    def send_request(self, s: string, peer):
+           
+        self.connect(peer)
+        self.sock_client.send(s.encode())
             
         self.sock_client.close()
         
@@ -195,6 +193,14 @@ class Node():
             
             # pickle peers list
             stream = pickle.dumps(self.active_peers)
+            
+            # sending size of byte stream
+            size = len(stream)
+            size_msg = (4-len(str(size)))*"0" + str(size)
+            
+            self.sock_client.send(size_msg.encode())
+            
+            # send pickled object
             self.sock_client.send(stream)
             
         
@@ -208,7 +214,15 @@ class Node():
     def receive(self, choice, socket, address):
         # receive new peer data (peers list, hash table)
         if choice == "0x000":
-            received = socket.recv(1024)
+            size = int(socket.recv(4))
+            received = socket.recv(size)
+            print(pickle.loads(received))
             self.active_peers.update(pickle.loads(received))
         return
     
+    def exit(self):
+        
+        #self.sock_server.close()
+        self.sock_client.close()
+        
+        sys.exit()
