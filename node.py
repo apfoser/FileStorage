@@ -188,7 +188,7 @@ class Node():
         
         self.connect(peer)
         
-        # new peer (send peer list and hash table)
+        # sends peer list and hash table
         if choice == "0x000":
             instruction = "0x1XXX0x000"
             self.sock_client.send(instruction.encode())
@@ -209,6 +209,6 @@ class Node():
         # receive new peer data (peers list, hash table)
         if choice == "0x000":
             received = socket.recv(1024)
-            self.active_peers = pickle.loads(received)
+            self.active_peers.update(pickle.loads(received))
         return
     
