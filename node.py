@@ -9,6 +9,8 @@ import time
 import hashlib
 import sys
 import pickle
+import re
+
 
 # macros needed for operation
 SEPARATOR = 'XXX'
@@ -108,6 +110,13 @@ class Node():
     If no connection, removes from active peers
     '''
     def connect(self, address):
+        
+        rgx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+       
+        if(not re.search(rgx, address)):
+            
+            print("Invalid address")
+            return
 
         id = self.gen_id(address)
         self.init_client()
@@ -220,9 +229,3 @@ class Node():
             self.active_peers.update(pickle.loads(received))
         return
     
-    def exit(self):
-        
-        #self.sock_server.close()
-        self.sock_client.close()
-        
-        sys.exit()
