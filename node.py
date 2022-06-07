@@ -1,8 +1,6 @@
-from calendar import c
 import socket
 import select
 import string
-from tkinter.ttk import Separator
 import tqdm
 from _thread import *
 import os
