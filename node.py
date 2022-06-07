@@ -74,7 +74,6 @@ class Node():
         if not received:
             socket.close()
             return
-        print(received)
         
         # needed to handle any "bad" instructions sent (incomplete, etc)
         instructions = received.split(SEPARATOR)
@@ -82,10 +81,6 @@ class Node():
             mode, choice = "", ""
         else: 
             mode, choice = instructions[0], instructions[1]
-        
-        print("mode: " + mode)
-        print("choice: " + choice)
-        
         
         # choice provided to new client
         # 0x0 --> requesting data from THIS PEER
@@ -193,8 +188,6 @@ class Node():
     '''
     def send(self, choice: string, peer):
         
-        print("in send function")
-        
         self.connect(peer)
         
         # new peer (send peer list and hash table)
@@ -206,6 +199,8 @@ class Node():
             stream = pickle.dumps(self.active_peers)
             self.sock_client.send(stream)
             
+        
+            
         self.sock_client.close()
         return
             
@@ -213,15 +208,9 @@ class Node():
     Receives data from client socket
     '''
     def receive(self, choice, socket, address):
-        
-        print("in receive function")
-        
         # receive new peer data (peers list, hash table)
         if choice == "0x000":
             received = socket.recv(1024)
             self.active_peers = pickle.loads(received)
-            
-            print(self.active_peers)
-        
         return
     
