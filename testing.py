@@ -7,8 +7,6 @@ print("----------------------------------")
 
 node = node.Node()
 
-time.sleep(.1)
-
 while True:
     choice = input("")
     

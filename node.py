@@ -12,7 +12,9 @@ import hashlib
 import sys
 import pickle
 
+# macros needed for operation
 SEPARATOR = 'XXX'
+# # # # # # # # # # # # # # #
 
 class Node():
     
@@ -68,7 +70,7 @@ class Node():
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         
         # blocking call
-        received = socket.recv(16).decode('utf-8')
+        received = socket.recv(11).decode('utf-8')
         if not received:
             socket.close()
             return
@@ -76,7 +78,10 @@ class Node():
         
         # needed to handle any "bad" instructions sent (incomplete, etc)
         instructions = received.split(SEPARATOR)
-        mode, choice = instructions[0], instructions[1]
+        if len(instructions) - 1 == 0:
+            mode, choice = "", ""
+        else: 
+            mode, choice = instructions[0], instructions[1]
         
         print("mode: " + mode)
         print("choice: " + choice)
@@ -88,10 +93,10 @@ class Node():
         
         # call send() or receive()
         if mode == "0x0":
-            self.send(choice, address)
+            self.send(choice, address[0])
             
-        elif mode == "0x01":
-            self.receive(choice, socket, address)
+        elif mode == "0x1":
+            self.receive(choice, socket, address[0])
         
         socket.close()
         return
@@ -186,17 +191,20 @@ class Node():
     Communicates with connected client
     Handles protocol stuff (new peer, etc)
     '''
-    def send(self, type: string, peer):
+    def send(self, choice: string, peer):
         
         print("in send function")
         
         self.connect(peer)
         
-        if type == "0x001":
-            self.sock_client.send(type)
-            msg = pickle.dumps(self.active_peers)
-            self.sock_client.send(msg)
+        # new peer (send peer list and hash table)
+        if choice == "0x000":
+            instruction = "0x1XXX0x000"
+            self.sock_client.send(instruction.encode())
             
+            # pickle peers list
+            stream = pickle.dumps(self.active_peers)
+            self.sock_client.send(stream)
             
         self.sock_client.close()
         return
@@ -205,5 +213,15 @@ class Node():
     Receives data from client socket
     '''
     def receive(self, choice, socket, address):
+        
+        print("in receive function")
+        
+        # receive new peer data (peers list, hash table)
+        if choice == "0x000":
+            received = socket.recv(1024)
+            self.active_peers = pickle.loads(received)
+            
+            print(self.active_peers)
+        
         return
     
