@@ -16,23 +16,26 @@ while True:
             ip = node.ip
         node.connect(ip)
         
-    if choice == "exit":
+    elif choice == "exit":
         node.exit()
         
-    if choice == "peers":
+    elif choice == "peers":
         node.ping_peers()
         
-    if choice == "print peers":
+    elif choice == "print peers":
         node.print_peers()
         
-    if choice == "send":
+    elif choice == "send":
         s = input("request: ")
         peer = input("ip of peer: ")
         node.send_request(s, peer)
         
-    if choice == "connections":
+    elif choice == "connections":
         node.get_connections()
     
-    if choice == "clear":
+    elif choice == "clear":
         os.system('cls')
         
+    elif choice == "put":
+        filename = input("filename: ")
+        node.put_file(filename, 64)

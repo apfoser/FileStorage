@@ -10,6 +10,7 @@ import hashlib
 import sys
 import pickle
 import re
+import random
 
 
 # macros needed for operation
@@ -45,6 +46,7 @@ class Node():
         self.sock_server.bind((SERVER_HOST, SERVER_PORT))
         self.sock_server.listen(10)
         self.id = self.gen_id(SERVER_HOST)
+        self.active_peers.update({self.gen_id(self.ip):self.ip})
         print("Node ID: " + self.id)
         print(f"Listening at {SERVER_HOST}:{SERVER_PORT}...\n")
         
@@ -191,7 +193,7 @@ class Node():
     Communicates with connected client
     Handles protocol stuff (new peer, etc)
     '''
-    def send(self, choice: string, peer):
+    def send(self, choice: string, peer, dat = ""):
         
         self.connect(peer)
         
@@ -212,7 +214,18 @@ class Node():
             # send pickled object
             self.sock_client.send(stream)
             
-        
+        # sends file to peer
+        # used by put_file method    
+        elif choice == "0x001":
+            
+            instruction = "0x1XXX0x001"
+            self.sock_client.send(instruction.encode())
+            
+            size = len(dat)
+            size_msg = (4-len(str(size)))*"0" + str(size)
+            
+            self.sock_client.send(size_msg.encode())
+            self.sock_client.send(dat)
             
         self.sock_client.close()
         return
@@ -227,5 +240,36 @@ class Node():
             received = socket.recv(size)
             print(pickle.loads(received))
             self.active_peers.update(pickle.loads(received))
+            
+        # receives file from peer
+        elif choice == "0x001":
+            size = int(socket.recv(4))
+            received = socket.recv(size)
+            
+            chunk_hash = hashlib.md5(received).hexdigest()
+            with open(chunk_hash, "wb") as f:
+                f.write(received)
+            
         return
     
+    '''
+    Put file into system
+    '''
+    def put_file(self, filename, chunksize):
+        
+        with open(filename, 'rb') as f:
+            h = hashlib.md5()
+            
+            while True:
+                dat = f.read(chunksize)
+                if not dat:
+                    break
+                
+                h.update(dat)
+                hash_chunk = hashlib.md5(dat).hexdigest()
+                peer = random.choice(list(self.active_peers.values()))
+                
+                self.send("0x001", peer, dat)
+                
+            hash_file = h.hexdigest()
+            print(hash_file)
