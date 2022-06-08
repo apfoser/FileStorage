@@ -26,8 +26,12 @@ class Node():
     def __init__(self):
         self.active_peers = {}
         self.peers = {}
+        self.chunks = {}
+        self.files = {}
+        self.buf = b''
         self.threads = 0
         self.ip = ""
+        self.read = True
         self.init_client()
         self.thread_server = threading.Thread(target = self.init_server)
         self.thread_server.start()
@@ -67,7 +71,7 @@ class Node():
     Creates new thread for each additional client
     '''
     def new_client(self, socket: socket, address):
-        print(f"[+] {address} is connected.")
+        #print(f"[+] {address} is connected.")
         self.peers.update({self.gen_id:address[0]})
         self.active_peers.update({self.gen_id(address[0]):address[0]})
         
@@ -90,11 +94,13 @@ class Node():
         
         # call send() or receive()
         if mode == "0x0":
-            self.send(choice, address[0])
+            if choice == "0x010":
+                hash = socket.recv(32)
+            self.send(choice, address[0], hash = hash)
             
         elif mode == "0x1":
             self.receive(choice, socket, address[0])
-        
+            
         socket.close()
         return
         
@@ -181,19 +187,20 @@ class Node():
     Different with send() function in that it doesn't handle any objects
     Just text aka system requests
     '''
-    def send_request(self, s: string, peer):
+    def send_request(self, s: string, peer, hash = ""):
            
         self.connect(peer)
-        self.sock_client.send(s.encode())
+        msg = s + hash
+        self.sock_client.send(msg.encode())
             
-        self.sock_client.close()
+        #self.sock_client.close()
         
     
     '''
     Communicates with connected client
     Handles protocol stuff (new peer, etc)
     '''
-    def send(self, choice: string, peer, dat = ""):
+    def send(self, choice: string, peer, dat = "", hash = ""):
         
         self.connect(peer)
         
@@ -215,7 +222,8 @@ class Node():
             self.sock_client.send(stream)
             
         # sends file to peer
-        # used by put_file method    
+        # used by put_file method 
+        # splitting only (PUT)   
         elif choice == "0x001":
             
             instruction = "0x1XXX0x001"
@@ -226,6 +234,9 @@ class Node():
             
             self.sock_client.send(size_msg.encode())
             self.sock_client.send(dat)
+            
+        elif choice == "0x010":
+            pass
             
         self.sock_client.close()
         return
@@ -242,13 +253,19 @@ class Node():
             self.active_peers.update(pickle.loads(received))
             
         # receives file from peer
+        # splitting only (PUT)
         elif choice == "0x001":
             size = int(socket.recv(4))
             received = socket.recv(size)
             
             chunk_hash = hashlib.md5(received).hexdigest()
+            filename = chunk_hash
+            self.chunks.update({chunk_hash:filename})
             with open(chunk_hash, "wb") as f:
                 f.write(received)
+            
+        elif choice == "0x010":
+            pass
             
         return
     
@@ -257,19 +274,38 @@ class Node():
     '''
     def put_file(self, filename, chunksize):
         
+        file_order = []
+        filesize = os.path.getsize(filename)
+        
+        # buggy output, commented out for now
+        #progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+        
         with open(filename, 'rb') as f:
             h = hashlib.md5()
             
             while True:
                 dat = f.read(chunksize)
+                #progress.update(len(dat))
                 if not dat:
                     break
                 
                 h.update(dat)
-                hash_chunk = hashlib.md5(dat).hexdigest()
+                chunk_hash = hashlib.md5(dat).hexdigest()
                 peer = random.choice(list(self.active_peers.values()))
                 
                 self.send("0x001", peer, dat)
                 
-            hash_file = h.hexdigest()
-            print(hash_file)
+                file_order.append((chunk_hash, peer))
+                
+            file_hash = h.hexdigest()
+            # sleep needed otherwise progress bar is messed up
+            self.files.update({file_hash:file_order})
+            print("File hash: " + file_hash)
+            # print(self.files[file_hash])
+            
+    '''
+    Gets file from system
+    '''
+    def retrieve(self, file_hash):
+        
+        return
