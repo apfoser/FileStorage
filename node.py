@@ -65,7 +65,7 @@ class Node():
     '''
     def init_client(self):
         self.sock_client = socket.socket()
-        self.sock_client.settimeout(.5)
+        self.sock_client.settimeout(1)
         
     '''
     Creates new thread for each additional client
@@ -78,7 +78,7 @@ class Node():
         # blocking call
         received = socket.recv(11).decode('utf-8')
         if not received:
-            #socket.close()
+            socket.close()
             return
         
         # needed to handle any "bad" instructions sent (incomplete, etc)
@@ -241,9 +241,18 @@ class Node():
             
             instruction = "0x1XXX0x010"
             self.sock_client.send(instruction.encode())
+
+            with open(hash, 'rb') as f:
+                 bytes = f.read(4096)
+                 size = len(bytes)
+
+                 size_msg = (4-len(str(size)))*"0" + str(size)
+
+                 self.sock_client.send(size_msg.encode())
+                 self.sock_client.send(bytes)
             
-            test_text = 'test text'
-            self.sock_client.send(test_text.encode())
+            # test_text = 'test text'
+            # self.sock_client.send(test_text.encode())
             
         self.sock_client.close()
         return
@@ -273,10 +282,16 @@ class Node():
             
         elif choice == "0x010":
             
-            rec = socket.recv(9)
-            #print(address)
+            size = int(socket.recv(4).decode())
+            rec = socket.recv(size)
+            self.buf = rec
+            #print(size)
+            #print(rec.decode())
+
+            # rec = socket.recv(9)
+            # print(rec)
             
-        #socket.close()
+        socket.close()
         self.recv = False
         return
     
@@ -309,7 +324,7 @@ class Node():
                 file_order.append((chunk_hash, peer))
                 
             file_hash = h.hexdigest()
-            # sleep needed otherwise progress bar is messed up
+            # v needed otherwise progress bar is messed up
             self.files.update({file_hash:file_order})
             print("File hash: " + file_hash)
             # print(self.files[file_hash])
@@ -319,15 +334,25 @@ class Node():
     '''
     def retrieve(self, file_hash):
         
-        #print(self.files[file_hash])
-        for pair in self.files[file_hash]:
+        with open('file', 'wb') as f:
+
+            #print(self.files[file_hash])
+            for pair in self.files[file_hash]:
+                
+                while self.recv:
+                    pass
+                
+                f.write(self.buf)
+                self.buf = b''
+
+                self.send_request(hash = pair[0], peer = pair[1], s = "0x0XXX0x010")
+                self.recv = True
             
             while self.recv:
-                pass
-            
-            self.send_request(hash = pair[0], peer = pair[1], s = "0x0XXX0x010")
-            self.recv = True
-            
+                    pass
+            f.write(self.buf)
+            self.recv = False
+            self.buf = b''
             
         print("done")
         return
