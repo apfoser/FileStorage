@@ -78,7 +78,7 @@ class Node():
         # blocking call
         received = socket.recv(11).decode('utf-8')
         if not received:
-            socket.close()
+            #socket.close()
             return
         
         # needed to handle any "bad" instructions sent (incomplete, etc)
@@ -274,9 +274,9 @@ class Node():
         elif choice == "0x010":
             
             rec = socket.recv(9)
-            print(rec)
+            #print(address)
             
-            
+        #socket.close()
         self.recv = False
         return
     
@@ -319,10 +319,15 @@ class Node():
     '''
     def retrieve(self, file_hash):
         
-        print(self.files[file_hash])
+        #print(self.files[file_hash])
         for pair in self.files[file_hash]:
             
+            while self.recv:
+                pass
+            
             self.send_request(hash = pair[0], peer = pair[1], s = "0x0XXX0x010")
+            self.recv = True
             
             
+        print("done")
         return
