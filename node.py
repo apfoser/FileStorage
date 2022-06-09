@@ -31,7 +31,7 @@ class Node():
         self.buf = b''
         self.threads = 0
         self.ip = ""
-        self.read = True
+        self.recv = False
         self.init_client()
         self.thread_server = threading.Thread(target = self.init_server)
         self.thread_server.start()
@@ -99,9 +99,10 @@ class Node():
             self.send(choice, address[0], hash = hash)
             
         elif mode == "0x1":
+            self.recv = True
             self.receive(choice, socket, address[0])
             
-        socket.close()
+            
         return
         
     '''
@@ -190,10 +191,11 @@ class Node():
     def send_request(self, s: string, peer, hash = ""):
            
         self.connect(peer)
+        
         msg = s + hash
         self.sock_client.send(msg.encode())
             
-        #self.sock_client.close()
+        self.sock_client.close()
         
     
     '''
@@ -236,7 +238,12 @@ class Node():
             self.sock_client.send(dat)
             
         elif choice == "0x010":
-            pass
+            
+            instruction = "0x1XXX0x010"
+            self.sock_client.send(instruction.encode())
+            
+            test_text = 'test text'
+            self.sock_client.send(test_text.encode())
             
         self.sock_client.close()
         return
@@ -265,8 +272,12 @@ class Node():
                 f.write(received)
             
         elif choice == "0x010":
-            pass
             
+            rec = socket.recv(9)
+            print(rec)
+            
+            
+        self.recv = False
         return
     
     '''
@@ -308,4 +319,10 @@ class Node():
     '''
     def retrieve(self, file_hash):
         
+        print(self.files[file_hash])
+        for pair in self.files[file_hash]:
+            
+            self.send_request(hash = pair[0], peer = pair[1], s = "0x0XXX0x010")
+            
+            
         return

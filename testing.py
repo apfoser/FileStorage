@@ -38,7 +38,7 @@ while True:
         
     elif choice == "put":
         filename = input("filename: ")
-        node.put_file(filename, 64)
+        node.put_file(filename, 8)
         
     elif choice == "get":
         id = input("File Hash: ")
